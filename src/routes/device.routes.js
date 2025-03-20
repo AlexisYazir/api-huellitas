@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {createDevice, getInfoDevice, updateUserIdInDevice, getDevicesByUser} from "../controllers/device.controller.js"
+import {createDevice, getInfoDevice, updateUserIdInDevice, getDevicesByUser, datosRecibidos} from "../controllers/device.controller.js"
 
 const router = Router();
 
@@ -10,6 +10,8 @@ router.get('/device/:id', getInfoDevice); // Ruta para obtener un dispositivo po
 router.put('/device/:id', updateUserIdInDevice); // Ruta para obtener un dispositivo por su ID
 // Ruta para obtener los dispositivos de un usuario, cambiamos 'id' por 'id_usuario'
 router.get('/devices/:id_usuario', getDevicesByUser); 
+
+router.post("/datosRecibidos/", datosRecibidos)
 
 
 export default router;

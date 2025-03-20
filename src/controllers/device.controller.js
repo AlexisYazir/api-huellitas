@@ -210,3 +210,63 @@ export const getDevicesByUser = async (req, res) => {
     res.status(500).json(["Error al obtener los dispositivos del usuario"]);
   }
 };
+
+export const datosRecibidos = async (req, res) => {
+  try {
+    const {
+      mac,
+      servo,
+      bomba,
+      nivelComida,
+      nivelAgua,
+      nivelContenedorComida,
+      nivelContenedorAgua,
+    } = req.body;
+
+    // Validar que la MAC esté presente
+    if (!mac) {
+      return res.status(400).json({ error: "La dirección MAC es requerida" });
+    }
+
+    // Buscar el dispositivo en la base de datos por su MAC
+    let device = await IoTDevice.findOne({ mac });
+
+    if (!device) {
+      return res.status(404).json({ error: "Dispositivo no encontrado" });
+    }
+
+    // Imprimir los datos recibidos en la consola
+    console.log("Datos recibidos:", {
+      mac,
+      servo,
+      bomba,
+      nivelComida,
+      nivelAgua,
+      nivelContenedorComida,
+      nivelContenedorAgua,
+    });
+
+    // Actualizar los valores del dispositivo sin modificar la fecha
+    device.servo = servo || device.servo;
+    device.bomba = bomba || device.bomba;
+    device.estado_comida = nivelContenedorComida || device.estado_comida;
+    device.estado_agua = nivelContenedorAgua || device.estado_agua;
+    device.traste_comida = nivelComida || device.traste_comida;
+    device.traste_agua = nivelAgua || device.traste_agua;
+    //
+    // device.estado_comida = nivelComida || device.estado_comida;
+    // device.estado_agua = nivelAgua || device.estado_agua;
+    // device.traste_comida = nivelContenedorComida || device.traste_comida;
+    // device.traste_agua = nivelContenedorAgua || device.traste_agua;
+
+    await device.save();
+
+    res.status(200).json({
+      mensaje: "Datos actualizados correctamente",
+      datos: device,
+    });
+  } catch (error) {
+    console.error("Error al actualizar datos:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
