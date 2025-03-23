@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {login, register, logout, profile, verifyToken, questions, findUserQuestion,findUser,createUser,updateUser, roles, getUsers, deleteUser, getUser } from "../controllers/auth.controller.js";
+import {login, register, logout, profile, verifyToken, questions,sendEmail,resetPassword,verifyTokenUser, findUserQuestion,findUser,createUser,updateUser, roles, getUsers, deleteUser, getUser } from "../controllers/auth.controller.js";
 import { authRequired } from "../middlewares/validateToken.js";
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import { registerSchema,loginSchema } from "../schemas/auth.schema.js";
@@ -38,5 +38,23 @@ router.put("/users/:id", authRequired, updateUser)
 router.post("/find-user", findUser);
 
 router.post("/find-user/:id", findUserQuestion)
+
+router.post("/verify-token", verifyTokenUser)
+
+router.post("/reset-psw", resetPassword)
+
+router.post("/send-email", async (req, res) => {
+    const { email, username } = req.body;
+  
+    // Llamar a la función sendEmail
+    const emailSent = await sendEmail(email, username);
+  
+    if (emailSent) {
+      return res.status(200).json({ message: "Correo enviado con éxito" });
+    } else {
+      return res.status(500).json({ message: "Error enviando correo" });
+    }
+  });
+  
 
 export default router;
