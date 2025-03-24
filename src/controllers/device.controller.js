@@ -253,11 +253,6 @@ export const datosRecibidos = async (req, res) => {
     device.estado_agua = nivelContenedorAgua || device.estado_agua;
     device.traste_comida = nivelComida || device.traste_comida;
     device.traste_agua = nivelAgua || device.traste_agua;
-    //
-    // device.estado_comida = nivelComida || device.estado_comida;
-    // device.estado_agua = nivelAgua || device.estado_agua;
-    // device.traste_comida = nivelContenedorComida || device.traste_comida;
-    // device.traste_agua = nivelContenedorAgua || device.traste_agua;
 
     await device.save();
 
@@ -268,5 +263,48 @@ export const datosRecibidos = async (req, res) => {
   } catch (error) {
     console.error("Error al actualizar datos:", error);
     res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+// Función para obtener todos los usuarios con al menos un dispositivo IoT
+export const getUsersWithIoTDevices = async (req, res) => {
+  try {
+    // Buscar todos los dispositivos IoT y poblar la información del usuario y del producto
+    const devices = await IoTDevice.find()
+      .populate("id_usuario", "username") // Obtiene solo el username del usuario
+      .populate("id_producto", "nombre_producto"); // Obtiene solo el nombre del producto
+
+    if (devices.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No se encontraron usuarios con dispositivos IoT" });
+    }
+
+    // Crear un mapa para almacenar usuarios únicos con sus dispositivos
+    const usersMap = new Map();
+
+    devices.forEach(device => {
+      const user = device.id_usuario;
+      if (!usersMap.has(user._id)) {
+        usersMap.set(user._id, {
+          id_usuario: user._id,
+          username: user.username,
+          dispositivos: []
+        });
+      }
+      usersMap.get(user._id).dispositivos.push({
+        id_dispositivo: device._id,
+        nombre_producto: device.id_producto.nombre_producto,
+        mac: device.mac // Incluir la dirección MAC del dispositivo
+      });
+    });
+
+    // Convertir el mapa a un array de usuarios
+    const usersWithDevices = Array.from(usersMap.values());
+
+    res.json(usersWithDevices); // Responder con los usuarios y sus dispositivos
+  } catch (error) {
+    console.error("Error al obtener los usuarios con dispositivos IoT:", error);
+    res.status(500).json({ message: "Error al obtener los usuarios con dispositivos IoT" });
   }
 };
