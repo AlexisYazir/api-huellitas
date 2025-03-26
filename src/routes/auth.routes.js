@@ -12,7 +12,7 @@ router.post('/register',validateSchema(registerSchema), register);
 router.post('/createUser',validateSchema(registerSchema), createUser);
 
 //para eliminar una usuarios se espera un :id
-router.delete("/user/:id", authRequired, deleteUser);
+router.delete("/user/:id", deleteUser);
 
 //para traer los datos del usuario para actualizacion
 //router.get("/view-details/:id", getProduct)
@@ -30,10 +30,10 @@ router.get('/questions', questions); // Ruta para obtener las preguntas
 
 router.get('/roles', roles);
 
-router.get('/users', authRequired, getUsers) //juever por la madrugada puse el authRequired
+router.get('/users', getUsers) //juever por la madrugada puse el authRequired
 
 //para actualizar una tarea se espera un :id OKEYYYY
-router.put("/users/:id", authRequired, updateUser)
+router.put("/users/:id", updateUser)
 
 router.post("/find-user", findUser);
 

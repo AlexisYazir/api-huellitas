@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {createDevice, getInfoDevice, updateUserIdInDevice,getUsersWithIoTDevices, getDevicesByUser, datosRecibidos} from "../controllers/device.controller.js"
+import {createDevice, getInfoDevice, updateUserIdInDevice, getDeviceHistory,getUsersWithIoTDevices, getDevicesByUser, datosRecibidos} from "../controllers/device.controller.js"
 
 const router = Router();
 
@@ -14,6 +14,8 @@ router.get('/devices/:id_usuario', getDevicesByUser);
 router.get('/devices', getUsersWithIoTDevices); 
 
 router.post("/datosRecibidos/", datosRecibidos)
+
+router.get("/historial/:mac", getDeviceHistory);
 
 
 export default router;
