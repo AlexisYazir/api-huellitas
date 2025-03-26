@@ -24,7 +24,7 @@ router.post('/logout', logout);
 
 router.get('/verify', verifyToken );
 
-router.get('/profile', authRequired, profile);
+router.get('/profile', profile);
 
 router.get('/questions', questions); // Ruta para obtener las preguntas
 
