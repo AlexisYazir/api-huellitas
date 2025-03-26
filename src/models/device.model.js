@@ -31,14 +31,19 @@ const iotSchema = new mongoose.Schema({
         default: Date.now, // Establece la fecha y hora actual como valor por defecto
     },
     id_usuario: {
-        type: mongoose.Schema.Types.ObjectId, // Relacionado con el ID de usuario
-        ref: 'User', // Hace referencia al modelo de Usuario
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required: true,
-    },
+      },
+      
     mac: {
         type: String,
         required: true,
         unique: true, // Asegura que cada dispositivo tenga una dirección MAC única
+    },
+    nombre: {
+        type: String,
+        required: false,
     },
     horarios: { // Campo para los horarios programados
         type: [Date], // Es un array de fechas

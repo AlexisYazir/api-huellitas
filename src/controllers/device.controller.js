@@ -1,6 +1,6 @@
 import IoTDevice from "../models/device.model.js";
 import HistorialIoT from "../models/historial.model.js";
-
+import Product from '../models/product.model.js';
 export const createDevice = async (req, res) => {
   try {
     const {
@@ -10,7 +10,6 @@ export const createDevice = async (req, res) => {
       traste_comida,
       bomba,
       servo,
-      id_usuario,
       mac,
       horarios, 
       id_producto, 
@@ -24,7 +23,6 @@ export const createDevice = async (req, res) => {
       !traste_comida ||
       !bomba ||
       !servo ||
-      !id_usuario ||
       !mac ||
       !horarios ||
       !id_producto
@@ -72,7 +70,8 @@ export const createDevice = async (req, res) => {
         .status(400)
         .json(["Ya existe un dispositivo con esa dirección MAC"]);
     }
-
+    const nombre ="";
+    const id_usuario= "67e23b0eb3011a4026fad9e6";
     // Creamos el nuevo dispositivo IoT
     const newDevice = new IoTDevice({
       estado_agua,
@@ -84,6 +83,7 @@ export const createDevice = async (req, res) => {
       fecha: new Date(),
       id_usuario, // Relacionamos el dispositivo con un usuario
       mac,
+      nombre,
       horarios, // Incluimos los horarios
       id_producto, // Incluimos el ID del producto
     });
@@ -160,33 +160,43 @@ export const getInfoDevice = async (req, res) => {
 
 export const updateUserIdInDevice = async (req, res) => {
   try {
-    const { id } = req.params; // ID del producto desde la URL
-    const { id_usuario } = req.body; // Nuevo ID de usuario desde el body
+    const { id } = req.params; 
+    const { id_usuario } = req.body; 
 
-    // Validar que el id_usuario sea válido
+    // Validación
     if (!id_usuario || typeof id_usuario !== "string") {
       return res.status(400).json({ message: "ID de usuario no válido" });
     }
 
-    // Buscar el dispositivo por id_producto
+    // Buscar el dispositivo
     const device = await IoTDevice.findOne({ id_producto: id });
 
     if (!device) {
-      return res
-        .status(404)
-        .json({ message: "Dispositivo no encontrado para este producto" });
+      return res.status(404).json({ message: "Dispositivo no encontrado para este producto" });
     }
 
-    // Actualizar el id_usuario
+    // Actualizar el id_usuario en la colección de dispositivos
     device.id_usuario = id_usuario;
     await device.save();
 
-    res.json({ message: "ID de usuario actualizado correctamente", device });
+    // Establecer el stock del producto en 0
+    const product = await Product.findByIdAndUpdate(
+      id, 
+      { stock: 0 }, 
+      { new: true }
+    );
+
+    res.json({
+      message: "ID de usuario actualizado correctamente y stock del producto en 0",
+      device,
+      product
+    });
   } catch (error) {
-    console.error("Error al actualizar el ID de usuario:", error);
-    res.status(500).json({ message: "Error al actualizar el ID de usuario" });
+    console.error("Error al actualizar el ID de usuario y el stock:", error);
+    res.status(500).json({ message: "Error al actualizar el ID de usuario y el stock" });
   }
 };
+
 
 // Función para obtener todos los dispositivos de un usuario
 export const getDevicesByUser = async (req, res) => {
@@ -196,7 +206,7 @@ export const getDevicesByUser = async (req, res) => {
     // Buscar todos los dispositivos asociados a este usuario y poblar tanto id_usuario como id_producto
     const devices = await IoTDevice.find({ id_usuario })
       .populate("id_usuario", "username") // Obtiene solo el username del usuario
-      .populate("id_producto", "nombre_producto"); // Obtiene solo el nombre del producto
+      .populate("id_producto", "nombre_producto") // Obtiene solo el nombre del producto
 
     if (devices.length === 0) {
       return res
@@ -204,7 +214,7 @@ export const getDevicesByUser = async (req, res) => {
         .json({ message: "No se encontraron dispositivos para este usuario" });
     }
 
-    res.json(devices); // Responder con los dispositivos encontrados
+    res.json(devices);
   } catch (error) {
     console.error("Error al obtener los dispositivos del usuario:", error);
     res.status(500).json(["Error al obtener los dispositivos del usuario"]);
@@ -306,5 +316,28 @@ export const getUsersWithIoTDevices = async (req, res) => {
   } catch (error) {
     console.error("Error al obtener los usuarios con dispositivos IoT:", error);
     res.status(500).json({ message: "Error al obtener los usuarios con dispositivos IoT" });
+  }
+};
+
+export const getDeviceHistory = async (req, res) => {
+  try {
+    const { mac} = req.params;
+
+    // Validamos que el ID sea proporcionado
+    if (!mac) {
+      return res.status(400).json(["El ID del dispositivo es requerido"]);
+    }
+
+    // Buscamos el historial asociado al dispositivo
+    const historial = await HistorialIoT.find({ mac }).sort({ fecha: -1 });
+
+    if (!historial.length) {
+      return res.status(404).json(["No se encontró historial para este dispositivo"]);
+    }
+
+    res.status(200).json(historial);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(["Error al obtener el historial del dispositivo"]);
   }
 };
